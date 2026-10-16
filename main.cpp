@@ -85,7 +85,7 @@ class Scanner {
     }
 
 public:
-    Scanner(string s) : src(move(s)) {}
+    Scanner(string s) : src(std::move(s)) {}
 
     vector<Token> scan() {
         while (i < src.size()) {
@@ -159,7 +159,7 @@ const map<string, T> Scanner::kw = {
 class Env {
     map<string, Value> vars;
 public:
-    void set(const string& name, Value v) { vars[name] = move(v); }
+    void set(const string& name, Value v) { vars[name] = std::move(v); }
     Value get(const string& name, int line) {
         auto it = vars.find(name);
         if (it == vars.end()) throw LangError(at(line) + "Undefined variable '" + name + "'");
@@ -176,14 +176,14 @@ using ExprPtr = unique_ptr<Expr>;
 
 struct Literal : Expr {
     Value v;
-    Literal(Value v) : v(move(v)) {}
+    Literal(Value v) : v(std::move(v)) {}
     Value eval(Env&) override { return v; }
 };
 
 struct Var : Expr {
     string name;
     int line;
-    Var(string n, int l) : name(move(n)), line(l) {}
+    Var(string n, int l) : name(std::move(n)), line(l) {}
     Value eval(Env& env) override { return env.get(name, line); }
 };
 
@@ -192,7 +192,7 @@ struct Binary : Expr {
     T op;
     int line;
     Binary(ExprPtr l, T op, ExprPtr r, int line)
-        : l(move(l)), r(move(r)), op(op), line(line) {}
+        : l(std::move(l)), r(std::move(r)), op(op), line(line) {}
 
     Value eval(Env& env) override {
         Value a = l->eval(env);
@@ -236,19 +236,19 @@ void runBlock(Block& b, Env& env) {
 struct RememberStmt : Stmt {
     string name;
     ExprPtr init;
-    RememberStmt(string n, ExprPtr e) : name(move(n)), init(move(e)) {}
+    RememberStmt(string n, ExprPtr e) : name(std::move(n)), init(std::move(e)) {}
     void exec(Env& env) override { env.set(name, init->eval(env)); }
 };
 
 struct SayStmt : Stmt {
     ExprPtr e;
-    SayStmt(ExprPtr e) : e(move(e)) {}
+    SayStmt(ExprPtr e) : e(std::move(e)) {}
     void exec(Env& env) override { cout << toStr(e->eval(env)) << "\n"; }
 };
 
 struct InputStmt : Stmt {
     string name;
-    InputStmt(string n) : name(move(n)) {}
+    InputStmt(string n) : name(std::move(n)) {}
     void exec(Env& env) override {
         string line;
         getline(cin, line);
@@ -297,12 +297,12 @@ class Parser {
             expect(T::EQ, "Expected '=' after variable name");
             auto e = expression();
             expect(T::SEMI, "Expected ';'");
-            return mk<RememberStmt>(name, move(e));
+            return mk<RememberStmt>(name, std::move(e));
         }
         if (match(T::SAY)) {
             auto e = expression();
             expect(T::SEMI, "Expected ';' after say");
-            return mk<SayStmt>(move(e));
+            return mk<SayStmt>(std::move(e));
         }
         if (match(T::PUCHO)) {
             string name = expect(T::IDENT, "Variable ka naam chahiye after 'pucho'").text;
@@ -337,7 +337,7 @@ class Parser {
         if (check(T::EQ) || check(T::NEQ) || check(T::LT) || check(T::GT)) {
             Token op = advance();
             auto right = additive();
-            return mk<Binary>(move(left), op.type, move(right), op.line);
+            return mk<Binary>(std::move(left), op.type, std::move(right), op.line);
         }
         return left;
     }
@@ -346,7 +346,7 @@ class Parser {
         auto left = term();
         while (check(T::PLUS) || check(T::MINUS)) {
             Token op = advance();
-            left = mk<Binary>(move(left), op.type, term(), op.line);
+            left = mk<Binary>(std::move(left), op.type, term(), op.line);
         }
         return left;
     }
@@ -355,7 +355,7 @@ class Parser {
         auto left = unary();
         while (check(T::STAR) || check(T::SLASH)) {
             Token op = advance();
-            left = mk<Binary>(move(left), op.type, unary(), op.line);
+            left = mk<Binary>(std::move(left), op.type, unary(), op.line);
         }
         return left;
     }
@@ -381,7 +381,7 @@ class Parser {
     }
 
 public:
-    Parser(vector<Token> tokens) : t(move(tokens)) {}
+    Parser(vector<Token> tokens) : t(std::move(tokens)) {}
 
     Block parseProgram() {
         expect(T::HI, "Program 'hi' se start hona chahiye");

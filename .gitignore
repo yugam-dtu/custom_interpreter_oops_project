@@ -1,7 +1,17 @@
 # macOS
 .DS_Store
+*.dSYM/
 
 # Build artifacts
 bro
+interpreter
 *.o
 *.out
+*.exe
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile.cmake
+build/
